@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mera Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --saffron:#FF6B1A;--gold:#FFB703;--maroon:#7B0D1E;--dark:#1A0A00;
+  --shadow-depth:rgba(0,0,0,0.8);
+  --glow-orange:rgba(255,107,26,0.6);
+  --glow-gold:rgba(255,183,3,0.5);
+}
+body{
+  min-height:100vh;
+  background:linear-gradient(145deg,#0D0500 0%,#2A0E00 30%,#501A00 60%,#2A0E00 85%,#0D0500 100%);
+  font-family:'Poppins',sans-serif;color:#fff;padding-bottom:40px;
+  perspective:1200px;
+}
+
+/* NOISE TEXTURE OVERLAY */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.4;
+}
+
+.wrap{max-width:420px;margin:0 auto;padding:14px;position:relative;z-index:1;}
+
+/* === 3D CARDS === */
+.card3d{
+  border-radius:24px;padding:22px;margin-bottom:16px;
+  background:linear-gradient(145deg,rgba(255,130,40,0.22) 0%,rgba(90,15,0,0.65) 60%,rgba(50,5,0,0.8) 100%);
+  border:1px solid rgba(255,183,3,0.3);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.15) inset,
+    0 -1px 0 rgba(0,0,0,0.5) inset,
+    1px 0 0 rgba(255,255,255,0.07) inset,
+    0 4px 0 rgba(100,20,0,0.8),
+    0 8px 0 rgba(70,10,0,0.6),
+    0 12px 0 rgba(40,5,0,0.4),
+    0 16px 32px rgba(0,0,0,0.7),
+    0 0 60px rgba(255,107,26,0.15);
+  transform:translateY(0);
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.card3d:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.15) inset,
+    0 -1px 0 rgba(0,0,0,0.5) inset,
+    0 6px 0 rgba(100,20,0,0.8),
+    0 10px 0 rgba(70,10,0,0.6),
+    0 14px 0 rgba(40,5,0,0.4),
+    0 20px 40px rgba(0,0,0,0.7),
+    0 0 80px rgba(255,107,26,0.2);
+}
+
+.card-flat{
+  border-radius:20px;padding:16px;margin-bottom:14px;
+  background:linear-gradient(155deg,rgba(255,255,255,0.12) 0%,rgba(255,255,255,0.04) 50%,rgba(0,0,0,0.2) 100%);
+  border:1px solid rgba(255,255,255,0.14);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 -1px 0 rgba(0,0,0,0.4) inset,
+    0 3px 0 rgba(0,0,0,0.5),
+    0 6px 0 rgba(0,0,0,0.35),
+    0 10px 28px rgba(0,0,0,0.55);
+}
+
+/* HEADER */
+.header{text-align:center;padding:12px 0 8px;}
+.om{font-size:30px;display:block;animation:glow 2.5s ease-in-out infinite;}
+@keyframes glow{0%,100%{text-shadow:0 0 12px rgba(255,183,3,0.5),0 0 24px rgba(255,107,26,0.3);}50%{text-shadow:0 0 30px rgba(255,183,3,1),0 0 60px rgba(255,107,26,0.6);}}
+.app-title{font-size:10px;color:rgba(255,183,3,0.7);letter-spacing:5px;text-transform:uppercase;margin-top:4px;}
+
+/* CLOCK */
+.clock-wrap{
+  text-align:center;margin-bottom:16px;
+  background:linear-gradient(145deg,rgba(0,0,0,0.4),rgba(80,20,0,0.3));
+  border-radius:18px;padding:12px 20px;
+  border:1px solid rgba(255,183,3,0.2);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 3px 0 rgba(0,0,0,0.6),
+    0 6px 0 rgba(0,0,0,0.4),
+    0 10px 24px rgba(0,0,0,0.6);
+}
+.clock{
+  font-size:38px;font-weight:700;letter-spacing:4px;
+  text-shadow:0 4px 20px rgba(255,107,26,0.8),0 0 40px rgba(255,183,3,0.3);
+  background:linear-gradient(180deg,#fff 30%,rgba(255,183,3,0.8));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.clock span{-webkit-text-fill-color:rgba(255,183,3,0.7);}
+
+/* TODAY CARD */
+.today-card{text-align:center;}
+.sel-day{font-size:11px;font-weight:400;color:var(--gold);letter-spacing:4px;text-transform:uppercase;opacity:0.85;}
+.big-date{
+  font-size:96px;font-weight:900;line-height:0.95;margin:6px 0;
+  text-shadow:6px 6px 0 rgba(123,13,30,0.9),10px 10px 0 rgba(80,5,0,0.5);
+  background:linear-gradient(180deg,#ffffff 20%,rgba(255,200,80,0.9) 70%,rgba(255,107,26,0.7) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 8px 16px rgba(255,107,26,0.5));
+}
+.big-month{font-size:21px;font-weight:600;color:rgba(255,255,255,0.9);margin-bottom:10px;letter-spacing:1px;}
+.divider{
+  width:60px;height:2px;margin:10px auto;
+  background:linear-gradient(90deg,transparent,var(--gold),rgba(255,183,3,0.4),transparent);
+  box-shadow:0 0 8px rgba(255,183,3,0.5);
+}
+.hindi-info{font-size:13px;color:rgba(255,183,3,0.9);letter-spacing:0.5px;}
+
+/* === VOICE SECTION (below date card) === */
+.voice-section{
+  border-radius:22px;padding:18px;margin-bottom:16px;
+  background:linear-gradient(145deg,rgba(255,107,26,0.15) 0%,rgba(60,10,0,0.6) 60%,rgba(30,5,0,0.75) 100%);
+  border:1px solid rgba(255,183,3,0.25);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 -1px 0 rgba(0,0,0,0.5) inset,
+    0 4px 0 rgba(80,15,0,0.7),
+    0 8px 0 rgba(50,5,0,0.5),
+    0 14px 30px rgba(0,0,0,0.65),
+    0 0 50px rgba(255,107,26,0.1);
+}
+.voice-label{
+  text-align:center;font-size:10px;color:rgba(255,183,3,0.7);
+  letter-spacing:4px;text-transform:uppercase;margin-bottom:14px;
+}
+
+/* TOGGLE TABS */
+.tabs2{display:flex;gap:8px;margin-bottom:10px;}
+.tab2{
+  flex:1;padding:10px 6px;border:none;border-radius:14px;cursor:pointer;
+  font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;
+  background:linear-gradient(145deg,rgba(255,255,255,0.06),rgba(0,0,0,0.25));
+  color:rgba(255,255,255,0.45);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 3px 0 rgba(0,0,0,0.5),
+    0 6px 14px rgba(0,0,0,0.4);
+  transition:all 0.2s;
+}
+.tab2.on{
+  background:linear-gradient(145deg,rgba(255,130,40,0.55),rgba(140,20,30,0.65));
+  color:#fff;border-color:rgba(255,183,3,0.45);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.18) inset,
+    0 3px 0 rgba(80,10,0,0.7),
+    0 6px 18px rgba(255,107,26,0.4),
+    0 0 20px rgba(255,183,3,0.15);
+}
+.tab2:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.5),0 2px 6px rgba(0,0,0,0.4);}
+
+/* VOICE BUTTON */
+.vbtn{
+  width:100%;padding:18px;border:none;border-radius:18px;
+  background:linear-gradient(135deg,#FFD166,#FFB703,#FF6B1A,#c0390a);
+  color:#1A0A00;font-size:17px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  font-family:'Poppins',sans-serif;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.4) inset,
+    0 -2px 0 rgba(0,0,0,0.3) inset,
+    0 5px 0 rgba(100,35,0,0.8),
+    0 8px 0 rgba(70,20,0,0.6),
+    0 12px 0 rgba(40,10,0,0.4),
+    0 16px 30px rgba(255,107,26,0.5);
+  transition:all 0.15s;
+  letter-spacing:0.5px;
+  text-shadow:0 1px 2px rgba(255,255,255,0.3);
+}
+.vbtn:active{
+  transform:translateY(6px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.3) inset,
+    0 2px 0 rgba(100,35,0,0.8),
+    0 4px 12px rgba(255,107,26,0.3);
+}
+.vbtn.on{animation:vp 0.8s ease-in-out infinite;}
+@keyframes vp{
+  0%,100%{box-shadow:0 5px 0 rgba(100,35,0,0.8),0 16px 30px rgba(255,107,26,0.5);}
+  50%{box-shadow:0 5px 0 rgba(100,35,0,0.8),0 20px 50px rgba(255,183,3,0.9),0 0 40px rgba(255,183,3,0.4);}
+}
+
+/* WAVE ANIMATION */
+.wv{display:flex;align-items:center;gap:3px;}
+.wv span{display:block;width:3px;background:#1A0A00;border-radius:3px;animation:wa 0.7s ease-in-out infinite;box-shadow:0 0 4px rgba(0,0,0,0.3);}
+.wv span:nth-child(1){height:6px;animation-delay:0s;}
+.wv span:nth-child(2){height:14px;animation-delay:.1s;}
+.wv span:nth-child(3){height:22px;animation-delay:.2s;}
+.wv span:nth-child(4){height:14px;animation-delay:.3s;}
+.wv span:nth-child(5){height:6px;animation-delay:.4s;}
+@keyframes wa{0%,100%{transform:scaleY(0.3);}50%{transform:scaleY(1);}}
+
+.vst{
+  text-align:center;font-size:11px;color:rgba(255,183,3,0.75);
+  margin-top:8px;min-height:18px;letter-spacing:0.5px;
+}
+
+/* MONTH NAV */
+.mnav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;margin-bottom:12px;
+  background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.3));
+  border-radius:18px;border:1px solid rgba(255,255,255,0.12);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.1) inset,
+    0 3px 0 rgba(0,0,0,0.5),
+    0 6px 0 rgba(0,0,0,0.35),
+    0 10px 22px rgba(0,0,0,0.5);
+}
+.nbtn{
+  background:linear-gradient(145deg,rgba(255,107,26,0.5),rgba(123,13,30,0.6));
+  border:1px solid rgba(255,107,26,0.35);color:#fff;
+  width:36px;height:36px;border-radius:12px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.15) inset,
+    0 3px 0 rgba(80,0,0,0.6),
+    0 5px 0 rgba(50,0,0,0.4),
+    0 8px 16px rgba(255,107,26,0.3);
+  transition:all 0.15s;
+}
+.nbtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(80,0,0,0.6),0 3px 8px rgba(255,107,26,0.2);}
+.mlbl{font-size:17px;font-weight:700;text-shadow:0 2px 8px rgba(255,107,26,0.4);}
+.tjump{
+  background:linear-gradient(145deg,var(--gold),var(--saffron),#c0390a);
+  border:none;color:#1A0A00;font-size:11px;font-weight:800;
+  padding:6px 14px;border-radius:10px;cursor:pointer;
+  font-family:'Poppins',sans-serif;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.3) inset,
+    0 3px 0 rgba(100,40,0,0.6),
+    0 5px 0 rgba(70,20,0,0.4),
+    0 8px 14px rgba(255,107,26,0.35);
+  transition:all 0.15s;text-shadow:0 1px 2px rgba(255,200,0,0.4);
+}
+.tjump:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(100,40,0,0.6),0 3px 8px rgba(255,107,26,0.2);}
+
+/* CALENDAR GRID */
+.cgw{
+  padding:16px;margin-bottom:14px;
+  background:linear-gradient(145deg,rgba(255,255,255,0.09),rgba(0,0,0,0.35));
+  border-radius:22px;border:1px solid rgba(255,255,255,0.12);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.1) inset,
+    0 4px 0 rgba(0,0,0,0.6),
+    0 8px 0 rgba(0,0,0,0.45),
+    0 14px 0 rgba(0,0,0,0.3),
+    0 20px 40px rgba(0,0,0,0.6);
+}
+.dlbls{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:10px;}
+.dlbl{text-align:center;font-size:10px;color:rgba(255,183,3,0.7);letter-spacing:1px;text-transform:uppercase;padding:5px 0;}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cd{
+  aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;
+  transition:all 0.15s;
+  background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2));
+}
+.cd:active{transform:scale(0.82) translateY(2px);}
+.cd .dn{font-size:14px;font-weight:600;color:rgba(255,255,255,0.75);}
+.cd .dd{width:4px;height:4px;border-radius:50%;background:var(--gold);margin-top:2px;box-shadow:0 0 4px rgba(255,183,3,0.6);}
+.cd.om .dn{color:rgba(255,255,255,0.18);}
+.cd.sun .dn{color:rgba(255,130,130,0.9);}
+.cd.it{
+  background:linear-gradient(145deg,rgba(255,107,26,0.25),rgba(200,50,0,0.3));
+  border:1.5px solid rgba(255,183,3,0.55);
+  box-shadow:0 2px 0 rgba(80,0,0,0.5),0 4px 12px rgba(255,107,26,0.4),0 0 12px rgba(255,183,3,0.2);
+}
+.cd.it .dn{color:#fff;font-weight:900;}
+.cd.sel{
+  background:linear-gradient(145deg,#FF8C2F,#FF5500,#8B0D1E);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.25) inset,
+    0 4px 0 rgba(80,0,0,0.7),
+    0 6px 0 rgba(50,0,0,0.5),
+    0 10px 20px rgba(255,107,26,0.55),
+    0 0 18px rgba(255,183,3,0.25);
+  transform:translateY(-2px);
+}
+.cd.sel .dn{color:#fff;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,0.5);}
+.cd.sel .dd{background:#fff;box-shadow:0 0 6px rgba(255,255,255,0.6);}
+
+/* FESTIVAL CARD */
+.fc{
+  border-radius:18px;padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:14px;
+  background:linear-gradient(135deg,rgba(255,120,40,0.75),rgba(140,20,30,0.85));
+  border:1px solid rgba(255,183,3,0.35);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.15) inset,
+    0 5px 0 rgba(80,0,0,0.6),
+    0 9px 0 rgba(50,0,0,0.4),
+    0 14px 30px rgba(255,107,26,0.45),
+    0 0 40px rgba(255,183,3,0.15);
+  animation:fs 3s ease-in-out infinite;
+}
+@keyframes fs{
+  0%,100%{box-shadow:0 5px 0 rgba(80,0,0,0.6),0 14px 30px rgba(255,107,26,0.45);}
+  50%{box-shadow:0 5px 0 rgba(80,0,0,0.6),0 20px 42px rgba(255,183,3,0.65),0 0 50px rgba(255,183,3,0.3);}
+}
+.fe{font-size:38px;animation:bn 2s ease-in-out infinite;}
+@keyframes bn{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-5px) rotate(3deg);}}
+.fi h3{font-size:17px;font-weight:700;text-shadow:0 2px 6px rgba(0,0,0,0.4);}
+.fi p{font-size:11px;color:rgba(255,255,255,0.85);margin-top:3px;}
+.nf{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:14px;
+  box-shadow:0 3px 0 rgba(0,0,0,0.4),0 6px 16px rgba(0,0,0,0.4);
+}
+.nf p{font-size:12px;color:rgba(255,255,255,0.42);}
+
+/* INFO GRID */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.ib{
+  background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.25));
+  border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;text-align:center;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.1) inset,
+    0 3px 0 rgba(0,0,0,0.55),
+    0 6px 0 rgba(0,0,0,0.35),
+    0 10px 20px rgba(0,0,0,0.5);
+}
+.ib .lb{font-size:9px;color:rgba(255,183,3,0.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+.ib .vl{font-size:20px;font-weight:700;text-shadow:0 3px 10px rgba(255,107,26,0.4);}
+.ib .sb{font-size:9px;color:rgba(255,255,255,0.3);margin-top:3px;}
+
+/* VICHAR */
+.vc{
+  border-left:3px solid var(--gold);
+  background:linear-gradient(135deg,rgba(255,183,3,0.1),rgba(255,255,255,0.04));
+  border-radius:14px;padding:14px 16px;margin-bottom:14px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 3px 0 rgba(0,0,0,0.5),
+    0 6px 0 rgba(0,0,0,0.3),
+    0 10px 22px rgba(0,0,0,0.45),
+    -3px 0 12px rgba(255,183,3,0.15);
+}
+.vlb{font-size:9px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
+.vtxt{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.65;font-style:italic;text-shadow:0 1px 4px rgba(0,0,0,0.4);}
+
+/* UPCOMING */
+.uw{
+  padding:18px;margin-bottom:14px;
+  background:linear-gradient(145deg,rgba(255,255,255,0.09),rgba(0,0,0,0.3));
+  border-radius:20px;border:1px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 4px 0 rgba(0,0,0,0.55),
+    0 8px 0 rgba(0,0,0,0.35),
+    0 14px 28px rgba(0,0,0,0.55);
+}
+.stitle{font-size:10px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;}
+.ui{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07);}
+.ui:last-child{border-bottom:none;}
+.ub{
+  background:linear-gradient(145deg,rgba(255,107,26,0.22),rgba(150,30,0,0.3));
+  border:1px solid rgba(255,107,26,0.45);border-radius:12px;padding:6px 10px;text-align:center;min-width:48px;
+  box-shadow:0 1px 0 rgba(255,255,255,0.1) inset,0 3px 0 rgba(80,0,0,0.5),0 5px 10px rgba(255,107,26,0.25);
+}
+.ub .ud{font-size:18px;font-weight:700;color:var(--saffron);line-height:1;text-shadow:0 2px 6px rgba(255,107,26,0.5);}
+.ub .um{font-size:8px;color:rgba(255,255,255,0.4);text-transform:uppercase;}
+.un2{font-size:13px;font-weight:600;}
+.ul2{font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;}
+.footer{text-align:center;font-size:10px;color:rgba(255,255,255,0.16);margin-top:8px;letter-spacing:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span class="om">🕉️</span>
+    <p class="app-title">Mera Daily Calendar</p>
+  </div>
+
+  <!-- CLOCK -->
+  <div class="clock-wrap">
+    <div class="clock" id="clk">--<span>:</span>--<span>:</span>--</div>
+  </div>
+
+  <!-- TODAY / SELECTED DATE CARD -->
+  <div class="card3d today-card">
+    <div class="sel-day" id="sday">---</div>
+    <div class="big-date" id="sdate">--</div>
+    <div class="big-month" id="smonth">--- ----</div>
+    <div class="divider"></div>
+    <div class="hindi-info" id="shindi">---</div>
+  </div>
+
+  <!-- VOICE SECTION — DATE KE NEECHE -->
+  <div class="voice-section">
+    <div class="voice-label">🔊 Awaaz Suno</div>
+
+    <!-- LANGUAGE TABS -->
+    <div class="tabs2">
+      <button class="tab2 on" id="bHI" onclick="setLang('hi')">🇮🇳 Hindi</button>
+      <button class="tab2" id="bEN" onclick="setLang('en')">🇬🇧 English</button>
+    </div>
+
+    <!-- GENDER TABS -->
+    <div class="tabs2">
+      <button class="tab2 on" id="bF" onclick="setGender('female')">👩 Mahila</button>
+      <button class="tab2" id="bM" onclick="setGender('male')">👨 Purush</button>
+    </div>
+
+    <!-- MAIN VOICE BUTTON -->
+    <button class="vbtn" id="vbtn" onclick="handleVoice()">
+      <span id="vico">🔊</span>
+      <span id="vtxt">Hindi mein Sunein</span>
+    </button>
+    <div class="vst" id="vst">☝️ Bhasha aur awaaz chunein, phir sunein</div>
+  </div>
+
+  <!-- MONTH NAV -->
+  <div class="mnav">
+    <button class="nbtn" onclick="chM(-1)">‹</button>
+    <div class="mlbl" id="mlbl">--- ----</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="tjump" onclick="goToday()">Aaj</button>
+      <button class="nbtn" onclick="chM(1)">›</button>
+    </div>
+  </div>
+
+  <!-- CALENDAR GRID -->
+  <div class="cgw">
+    <div class="dlbls">
+      <div class="dlbl" style="color:rgba(255,120,120,0.75)">Ravi</div>
+      <div class="dlbl">Som</div><div class="dlbl">Man</div>
+      <div class="dlbl">Bud</div><div class="dlbl">Bri</div>
+      <div class="dlbl">Shu</div><div class="dlbl">Sha</div>
+    </div>
+    <div class="cgrid" id="cgrid"></div>
+  </div>
+
+  <!-- FESTIVAL BOX -->
+  <div id="fbox"></div>
+
+  <!-- INFO GRID -->
+  <div class="igrid">
+    <div class="ib"><div class="lb">Week No.</div><div class="vl" id="iW">--</div><div class="sb">Saal ka hapta</div></div>
+    <div class="ib"><div class="lb">Saal Ka Din</div><div class="vl" id="iD">--</div><div class="sb">Day of Year</div></div>
+    <div class="ib"><div class="lb">Mahine Mein</div><div class="vl" id="iM">--</div><div class="sb">Kul din</div></div>
+    <div class="ib"><div class="lb">Saal Baaki</div><div class="vl" id="iL">--</div><div class="sb">Din bache</div></div>
+  </div>
+
+  <!-- VICHAR -->
+  <div class="vc">
+    <div class="vlb">✨ Aaj Ka Vichar</div>
+    <div class="vtxt" id="vichar">...</div>
+  </div>
+
+  <!-- UPCOMING -->
+  <div class="uw">
+    <div class="stitle">📅 Aane Wale Tyohar</div>
+    <div id="uplist"></div>
+  </div>
+
+  <div class="footer">🇮🇳 JAI HIND &bull; VANDE MATARAM</div>
+</div>
+
+<script>
+// ===== DATA =====
+const MEN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DHI=["Ravivar","Somvar","Mangalvar","Budhvar","Guruvar","Shukravar","Shanivar"];
+const DEN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MDEV=["जनवरी","फरवरी","मार्च","अप्रैल","मई","जून","जुलाई","अगस्त","सितंबर","अक्टूबर","नवंबर","दिसंबर"];
+const DDEV=["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"];
+
+// ===== HINDI NUMBER WORDS (fully Devanagari) =====
+const H0=["","एक","दो","तीन","चार","पाँच","छह","सात","आठ","नौ","दस","ग्यारह","बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस","इक्कीस","बाईस","तेईस","चौबीस","पच्चीस","छब्बीस","सत्ताईस","अट्ठाईस","उनतीस","तीस","इकत्तीस","बत्तीस","तैंतीस","चौंतीस","पैंतीस","छत्तीस","सैंतीस","अड़तीस","उनतालीस","चालीस","इकतालीस","बयालीस","तैंतालीस","चवालीस","पैंतालीस","छियालीस","सैंतालीस","अड़तालीस","उनचास","पचास","इक्यावन","बावन","तिरपन","चौवन","पचपन","छप्पन","सत्तावन","अट्ठावन","उनसठ","साठ","इकसठ","बासठ","तिरसठ","चौंसठ","पैंसठ","छियासठ","सड़सठ","अड़सठ","उनहत्तर","सत्तर","इकहत्तर","बहत्तर","तिहत्तर","चौहत्तर","पचहत्तर","छिहत्तर","सतहत्तर","अठहत्तर","उन्यासी","अस्सी","इक्यासी","बयासी","तिरासी","चौरासी","पचासी","छियासी","सतासी","अट्ठासी","नवासी","नब्बे","इक्यानबे","बानबे","तिरानबे","चौरानबे","पचानबे","छियानबे","सत्तानबे","अट्ठानबे","निन्यानबे","सौ"];
+
+function nH(n){
+  n=parseInt(n);
+  if(n<=100) return H0[n]||String(n);
+  if(n<1000){const h=Math.floor(n/100),r=n%100;return(h===1?"एक सौ":nH(h)+" सौ")+(r>0?" "+nH(r):"");}
+  if(n<10000){const t=Math.floor(n/1000),r=n%1000;return nH(t)+" हज़ार"+(r>0?" "+nH(r):"");}
+  return String(n);
+}
+
+// ===== ENGLISH NUMBER WORDS =====
+const EO=["","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+const ET=["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+function nE(n){
+  n=parseInt(n);
+  if(!n) return "zero";
+  if(n<20) return EO[n];
+  if(n<100) return ET[Math.floor(n/10)]+(n%10?" "+EO[n%10]:"");
+  if(n<1000){const h=Math.floor(n/100),r=n%100;return EO[h]+" hundred"+(r>0?" and "+nE(r):"");}
+  if(n<10000){const t=Math.floor(n/1000),r=n%1000;return nE(t)+" thousand"+(r>0?" "+nE(r):"");}
+  return String(n);
+}
+
+// ===== FESTIVALS =====
+const FEST=[
+  {d:"2025-01-14",n:"Makar Sankranti",nh:"मकर संक्रांति",e:"🪁",t:"Patan ka tyohar",te:"Festival of kites and harvest"},
+  {d:"2025-01-26",n:"Republic Day",nh:"गणतंत्र दिवस",e:"🇮🇳",t:"Gantantra Divas",te:"India's Republic Day"},
+  {d:"2025-02-26",n:"Mahashivratri",nh:"महाशिवरात्रि",e:"🔱",t:"Shiv ji ki aradhana",te:"The great night of Lord Shiva"},
+  {d:"2025-03-14",n:"Holi",nh:"होली",e:"🎨",t:"Rangon ka tyohar",te:"The festival of colors"},
+  {d:"2025-03-30",n:"Ram Navami",nh:"राम नवमी",e:"🏹",t:"Shri Ram ji ka janam divas",te:"Birth anniversary of Lord Ram"},
+  {d:"2025-04-14",n:"Baisakhi",nh:"बैसाखी",e:"🌾",t:"Punjabi Naya Saal",te:"Punjabi New Year"},
+  {d:"2025-08-08",n:"Raksha Bandhan",nh:"रक्षा बंधन",e:"🪢",t:"Bhai-behen ka bandhan",te:"Festival of sibling bond"},
+  {d:"2025-08-15",n:"Independence Day",nh:"स्वतंत्रता दिवस",e:"🇮🇳",t:"Bharat ki Azaadi",te:"India's Independence Day"},
+  {d:"2025-08-16",n:"Janmashtami",nh:"जन्माष्टमी",e:"🦚",t:"Shri Krishna ji ka janam utsav",te:"Birth of Lord Krishna"},
+  {d:"2025-08-27",n:"Ganesh Chaturthi",nh:"गणेश चतुर्थी",e:"🐘",t:"Ganpati Bappa ki sthapana",te:"Festival of Lord Ganesha"},
+  {d:"2025-10-02",n:"Gandhi Jayanti",nh:"गांधी जयंती",e:"🕊️",t:"Bapu ki jayanti",te:"Birthday of Mahatma Gandhi"},
+  {d:"2025-10-13",n:"Dussehra",nh:"दशहरा",e:"🏹",t:"Ravaan dahan",te:"Victory of good over evil"},
+  {d:"2025-10-20",n:"Diwali",nh:"दीपावली",e:"🪔",t:"Deepon ka tyohar",te:"The festival of lights"},
+  {d:"2025-10-22",n:"Bhai Dooj",nh:"भाई दूज",e:"💝",t:"Bhai-behen ka prem",te:"Celebration of sibling love"},
+  {d:"2025-11-05",n:"Chhath Puja",nh:"छठ पूजा",e:"🌅",t:"Surya aradhana",te:"Worship of the Sun God"},
+  {d:"2025-11-15",n:"Guru Nanak Jayanti",nh:"गुरु नानक जयंती",e:"🌟",t:"Pratham Sikh Guru ki jayanti",te:"Birthday of Guru Nanak Dev Ji"},
+  {d:"2025-12-25",n:"Christmas",nh:"क्रिसमस",e:"🎄",t:"Isai dharma ka utsav",te:"Christmas Day"},
+  {d:"2025-12-31",n:"New Year Eve",nh:"नए साल की संध्या",e:"🎆",t:"Saal ki vidaai",te:"New Year Eve"},
+  {d:"2026-01-01",n:"Naya Saal",nh:"नया साल",e:"🎉",t:"Naye saal ki shubhkamnayein",te:"Happy New Year 2026"},
+  {d:"2026-01-14",n:"Makar Sankranti",nh:"मकर संक्रांति",e:"🪁",t:"Patan ka tyohar",te:"Festival of kites"},
+  {d:"2026-01-26",n:"Republic Day",nh:"गणतंत्र दिवस",e:"🇮🇳",t:"Gantantra Divas",te:"Republic Day"},
+  {d:"2026-02-15",n:"Mahashivratri",nh:"महाशिवरात्रि",e:"🔱",t:"Shiv aradhana",te:"Night of Lord Shiva"},
+  {d:"2026-02-28",n:"Holi",nh:"होली",e:"🎨",t:"Rangon ka tyohar",te:"Festival of colors"},
+  {d:"2026-04-14",n:"Baisakhi",nh:"बैसाखी",e:"🌾",t:"Punjabi Naya Saal",te:"Punjabi New Year"},
+  {d:"2026-08-15",n:"Independence Day",nh:"स्वतंत्रता दिवस",e:"🇮🇳",t:"Bharat ki Azaadi",te:"Independence Day"},
+  {d:"2026-10-09",n:"Dussehra",nh:"दशहरा",e:"🏹",t:"Ravaan dahan",te:"Dussehra"},
+  {d:"2026-10-19",n:"Diwali",nh:"दीपावली",e:"🪔",t:"Deepon ka tyohar",te:"Festival of lights"},
+  {d:"2026-12-25",n:"Christmas",nh:"क्रिसमस",e:"🎄",t:"Isai utsav",te:"Christmas"},
+  {d:"2026-12-31",n:"New Year Eve",nh:"नए साल की संध्या",e:"🎆",t:"Naye saal ka swagat",te:"New Year Eve"},
+];
+
+const VICHAR=[
+  "जो बीत गया उसे जाने दो, जो आने वाला है उसे अपनाओ।",
+  "हर सुबह एक नया मौका है कुछ बेहतर करने का।",
+  "मेहनत वो चाबी है जो किस्मत का ताला खोलती है।",
+  "कोशिश करने वालों की कभी हार नहीं होती।",
+  "अच्छा सोचो, अच्छा करो, अच्छा पाओगे।",
+  "धैर्य और साहस से हर मुश्किल आसान हो जाती है।",
+  "अपने लक्ष्य की ओर एक कदम रोज़ बढ़ाओ।",
+  "खुशी बांटने से बढ़ती है और दुख बांटने से घटता है।",
+  "सपने वो नहीं जो नींद में आते हैं, सपने वो हैं जो आपको सोने न दें।",
+  "जब तक जीयो, प्रसन्न रहो।"
+];
+
+// ===== STATE =====
+const T0=new Date();
+let vY=T0.getFullYear(),vM=T0.getMonth(),sD=new Date(T0);
+let spk=false,lang='hi',gender='female';
+
+// ===== UTILS =====
+function ts(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function gf(ds){return FEST.filter(f=>f.d===ds);}
+function doy(d){return Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);}
+function wk(d){const j=new Date(d.getFullYear(),0,1);return Math.ceil((((d-j)/86400000)+j.getDay()+1)/7);}
+function dim(y,m){return new Date(y,m+1,0).getDate();}
+function dl(d){return Math.ceil((new Date(d.getFullYear(),11,31)-d)/86400000);}
+
+// ===== LANG / GENDER =====
+function setLang(l){
+  lang=l;
+  document.getElementById('bHI').classList.toggle('on',l==='hi');
+  document.getElementById('bEN').classList.toggle('on',l==='en');
+  updVB();
+}
+function setGender(g){
+  gender=g;
+  document.getElementById('bF').classList.toggle('on',g==='female');
+  document.getElementById('bM').classList.toggle('on',g==='male');
+}
+function updVB(){
+  const isT=ts(sD)===ts(T0);
+  document.getElementById('vtxt').textContent=lang==='hi'
+    ?(isT?'Hindi mein Sunein':'Is Din Ki Jankari')
+    :(isT?'Listen in English':'Date Info in English');
+}
+
+// ===== CLOCK =====
+function tick(){
+  const n=new Date();
+  document.getElementById('clk').innerHTML=
+    `${String(n.getHours()).padStart(2,'0')}<span>:</span>${String(n.getMinutes()).padStart(2,'0')}<span>:</span>${String(n.getSeconds()).padStart(2,'0')}`;
+}
+
+// ===== VOICE SCRIPTS (fully Devanagari for Hindi, fully English for EN) =====
+// Script is generated internally — never shown on screen
+
+function bldHI(d){
+  // Pure Devanagari script — numbers as Hindi words
+  const ds=ts(d),fests=gf(ds),isT=ds===ts(T0);
+  const h=new Date().getHours();
+  let vandana=isT?(h<12?"सुप्रभात":"नमस्कार"):"नमस्कार";
+
+  // Year in Hindi words
+  const yr=d.getFullYear();
+  const yrStr=nH(Math.floor(yr/100))+" सौ "+nH(yr%100);
+
+  let s=`${vandana}! आज ${DDEV[d.getDay()]} है। तारीख है ${nH(d.getDate())} ${MDEV[d.getMonth()]}, ${yrStr}। `;
+
+  if(!isT){
+    const df=Math.round((d-T0)/86400000);
+    s+=df<0?`यह ${nH(Math.abs(df))} दिन पहले था। `:`यह ${nH(df)} दिन बाद आएगा। `;
+  }
+  if(fests.length){
+    s+=`इस दिन `;
+    s+=fests.map(f=>f.nh).join(" और ");
+    s+=` मनाया जाता है। बहुत बहुत शुभकामनाएं! `;
+  } else {
+    s+=`आज कोई विशेष त्योहार नहीं है। हर दिन एक उत्सव है! `;
+  }
+  s+=`यह इस साल का ${nH(doy(d))}वाँ दिन है। `;
+  if(isT) s+=`साल में अभी ${nH(dl(d))} दिन बाकी हैं। `;
+  s+=`आप स्वस्थ रहें, प्रसन्न रहें। जय हिंद! वंदे मातरम!`;
+  return s;
+}
+
+function bldEN(d){
+  // Pure English script — numbers as English words
+  const ds=ts(d),fests=gf(ds),isT=ds===ts(T0);
+  const h=new Date().getHours();
+  let greet=isT?(h<12?"Good morning":"Good day"):"Hello";
+
+  let s=`${greet}! Today is ${DEN[d.getDay()]}, the ${nE(d.getDate())} of ${MEN[d.getMonth()]}, ${d.getFullYear()}. `;
+
+  if(!isT){
+    const df=Math.round((d-T0)/86400000);
+    s+=df<0?`This day was ${nE(Math.abs(df))} days ago. `:`This day will come ${nE(df)} days from now. `;
+  }
+  if(fests.length){
+    s+=`${fests.map(f=>f.n).join(" and ")} is celebrated on this day. Best wishes to you! `;
+  } else {
+    s+=`There is no special festival on this day. But every day is a celebration of life! `;
+  }
+  s+=`This is day number ${nE(doy(d))} of the year. `;
+  if(isT) s+=`There are ${nE(dl(d))} days remaining in this year. `;
+  s+=`Wishing you a wonderful day. Jai Hind! Long live India!`;
+  return s;
+}
+
+// ===== HANDLE VOICE =====
+function handleVoice(){
+  if(spk){
+    window.speechSynthesis&&window.speechSynthesis.cancel();
+    spk=false;resetVB();return;
+  }
+  if(!('speechSynthesis' in window)){
+    document.getElementById('vst').textContent='❌ Chrome browser use karein.';return;
+  }
+
+  spk=true;
+  const btn=document.getElementById('vbtn');
+  btn.classList.add('on');
+  document.getElementById('vico').innerHTML='<div class="wv"><span></span><span></span><span></span><span></span><span></span></div>';
+  document.getElementById('vtxt').textContent='Rok ne ke liye tap karein...';
+  document.getElementById('vst').textContent='🎙️ Bol raha hoon...';
+
+  // Script generated internally — not shown to user
+  const script=lang==='hi'?bldHI(sD):bldEN(sD);
+
+  window.speechSynthesis.cancel();
+
+  const doSpeak=(voices)=>{
+    const u=new SpeechSynthesisUtterance(script);
+    let v=null;
+
+    if(lang==='hi'){
+      // Best Hindi voices
+      const hv=voices.filter(x=>x.lang==='hi-IN'||x.lang.startsWith('hi'));
+      if(gender==='female'){
+        v=hv.find(x=>/lekha|aditi|female|woman|neerja/i.test(x.name))
+          ||hv.find(x=>!(/male|man|rishi|hemant/i.test(x.name)))
+          ||hv[0];
+      } else {
+        v=hv.find(x=>/rishi|hemant|male|man/i.test(x.name))
+          ||hv[1]||hv[0];
+      }
+      u.lang='hi-IN';
+      u.rate=gender==='female'?0.80:0.75;
+      u.pitch=gender==='female'?1.15:0.78;
+      u.volume=1;
+    } else {
+      // Best English (prefer Indian accent en-IN)
+      const ev=voices.filter(x=>x.lang==='en-IN'||x.lang==='en-GB'||x.lang.startsWith('en'));
+      if(gender==='female'){
+        v=ev.find(x=>/aditi|neerja|samantha|veena|victoria|female|woman/i.test(x.name))
+          ||ev.find(x=>x.lang==='en-IN')
+          ||ev[0];
+      } else {
+        v=ev.find(x=>/rishi|daniel|alex|david|male|man/i.test(x.name))
+          ||ev.find(x=>x.lang==='en-IN')
+          ||ev[1]||ev[0];
+      }
+      u.lang='en-IN';
+      u.rate=gender==='female'?0.88:0.82;
+      u.pitch=gender==='female'?1.08:0.82;
+      u.volume=1;
+    }
+
+    if(v) u.voice=v;
+
+    u.onend=()=>{spk=false;resetVB();};
+    u.onerror=()=>{spk=false;resetVB();document.getElementById('vst').textContent='❌ Dobara try karein.';};
+    window.speechSynthesis.speak(u);
+
+    // Chrome long-speech keep-alive fix
+    let ka=setInterval(()=>{
+      if(!spk){clearInterval(ka);return;}
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    },9000);
+  };
+
+  const vx=window.speechSynthesis.getVoices();
+  if(vx.length>0) doSpeak(vx);
+  else {
+    window.speechSynthesis.onvoiceschanged=()=>doSpeak(window.speechSynthesis.getVoices());
+    setTimeout(()=>doSpeak(window.speechSynthesis.getVoices()),800);
+  }
+}
+
+function resetVB(){
+  document.getElementById('vbtn').classList.remove('on');
+  document.getElementById('vico').textContent='🔊';
+  updVB();
+  document.getElementById('vst').textContent='✅ Ho gaya! Fir sunne ke liye dobara dabao.';
+  setTimeout(()=>{document.getElementById('vst').textContent='';},4000);
+}
+
+// ===== RENDER SELECTED DATE =====
+function rSel(){
+  const d=sD,ds=ts(d),isT=ds===ts(T0);
+  document.getElementById('sday').textContent=DHI[d.getDay()]+(isT?' — Aaj':'');
+  document.getElementById('sdate').textContent=d.getDate();
+  document.getElementById('smonth').textContent=`${MEN[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('shindi').textContent=`🙏 ${DDEV[d.getDay()]}, ${d.getDate()} ${MDEV[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('iW').textContent=wk(d);
+  document.getElementById('iD').textContent=doy(d);
+  document.getElementById('iM').textContent=dim(d.getFullYear(),d.getMonth());
+  document.getElementById('iL').textContent=isT?dl(d):'—';
+  const fests=gf(ds),fb=document.getElementById('fbox');
+  if(fests.length){
+    fb.innerHTML=fests.map(f=>`
+      <div class="fc">
+        <div class="fe">${f.e}</div>
+        <div class="fi"><h3>🎉 ${f.n}</h3><p>${f.t}</p></div>
+      </div>`).join('');
+  } else {
+    const df=Math.round((d-T0)/86400000);
+    const msg=df<0?`${Math.abs(df)} din pehle`:df===0?'aaj':`${df} din baad`;
+    fb.innerHTML=`<div class="nf"><span>📆</span><p>Koi vishesh tyohar nahi (${msg}). Har din khushiyon ka din! 😊</p></div>`;
+  }
+  document.getElementById('vichar').textContent=VICHAR[doy(d)%VICHAR.length];
+  updVB();
+}
+
+// ===== RENDER CALENDAR =====
+function rCal(){
+  const g=document.getElementById('cgrid');
+  g.innerHTML='';
+  document.getElementById('mlbl').textContent=`${MEN[vM]} ${vY}`;
+  const first=new Date(vY,vM,1).getDay(),tot=dim(vY,vM),prev=dim(vY,vM-1);
+  const t0=ts(T0),t1=ts(sD),fs=new Set(FEST.map(f=>f.d));
+  for(let i=first-1;i>=0;i--){
+    const d=new Date(vY,vM-1,prev-i),ds=ts(d);
+    const el=mC(prev-i,d.getDay()===0,false,ds===t0,ds===t1,fs.has(ds));
+    el.onclick=()=>{sD=d;vY=d.getFullYear();vM=d.getMonth();rCal();rSel();};
+    g.appendChild(el);
+  }
+  for(let i=1;i<=tot;i++){
+    const d=new Date(vY,vM,i),ds=ts(d);
+    const el=mC(i,d.getDay()===0,true,ds===t0,ds===t1,fs.has(ds));
+    el.onclick=()=>{sD=d;rSel();rCal();};
+    g.appendChild(el);
+  }
+  const rem=(first+tot)%7===0?0:7-((first+tot)%7);
+  for(let i=1;i<=rem;i++){
+    const d=new Date(vY,vM+1,i),ds=ts(d);
+    const el=mC(i,d.getDay()===0,false,ds===t0,ds===t1,fs.has(ds));
+    el.onclick=()=>{sD=d;vY=d.getFullYear();vM=d.getMonth();rCal();rSel();};
+    g.appendChild(el);
+  }
+}
+
+function mC(day,sun,cur,isT,isSel,hasFest){
+  const d=document.createElement('div');
+  d.className='cd'+(sun?' sun':'')+(cur?'':' om')+(isT?' it':'')+(isSel?' sel':'');
+  d.innerHTML=`<div class="dn">${day}</div>${hasFest?'<div class="dd"></div>':''}`;
+  return d;
+}
+
+function chM(x){vM+=x;if(vM>11){vM=0;vY++;}if(vM<0){vM=11;vY--;}rCal();}
+function goToday(){sD=new Date(T0);vY=T0.getFullYear();vM=T0.getMonth();rCal();rSel();}
+
+// ===== UPCOMING =====
+function rUp(){
+  const t0=ts(T0);
+  const list=FEST.filter(f=>f.d>=t0).sort((a,b)=>a.d.localeCompare(b.d)).slice(0,5);
+  document.getElementById('uplist').innerHTML=list.map(f=>{
+    const fd=new Date(f.d),df=Math.ceil((fd-T0)/86400000);
+    const mo=MEN[fd.getMonth()].substring(0,3).toUpperCase();
+    const lb=df===0?'Aaj!':df===1?'Kal!':df<=7?`${df} din mein`:`${df} din baad`;
+    return `<div class="ui">
+      <div class="ub"><div class="ud">${fd.getDate()}</div><div class="um">${mo}</div></div>
+      <div><div class="un2">${f.e} ${f.n}</div><div class="ul2">${lb}</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ===== INIT =====
+window.addEventListener('load',()=>{
+  rCal();rSel();rUp();
+  setInterval(tick,1000);tick();
+});
+</script>
+</body>
+</html>
